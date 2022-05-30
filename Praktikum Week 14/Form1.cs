@@ -23,21 +23,29 @@ namespace Praktikum_Week_14
         String sqlQuery;
         DataTable dtData = new DataTable();
         DataTable dtGoal = new DataTable();
+        DataTable dtGridMatch = new DataTable();
         int posisiSekarang = 0;
+        
         public void IsiDataPemain(int Posisi)
         {
-            //MessageBox.Show(Posisi.ToString());
+            
             lbl_IsiTeamName.Text = dtData.Rows[Posisi][0].ToString();
             lbl_IsiManager.Text = dtData.Rows[Posisi][1].ToString();
             lbl_IsiStadium.Text = dtData.Rows[Posisi][2].ToString();
+            string simpan = dtData.Rows[Posisi][3].ToString();
+            dtGridMatch = new DataTable();
             sqlQuery = "select concat(p.player_name, ' ', sum(dm.type = 'GO' OR dm.type = 'GP'), '(', sum(dm.type = 'GP'),')') from dmatch dm, player p where p.team_id = '" + dtData.Rows[Posisi]["team_id"] + "' and (dm.type = 'GO' OR dm.type = 'GP') and dm.player_id = p.player_id group by dm.player_id order by 1 desc;";
             sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
             sqlAdapter = new MySqlDataAdapter(sqlCommand);
             sqlAdapter.Fill(dtGoal);
             lbl_IsiTopScorer.Text = dtGoal.Rows[Posisi][0].ToString();
             //lbl_IsiWorstDiscipline.Text = dtData.Rows[Posisi][8].ToString();
-   
-           
+            sqlQuery = "SELECT date_format(m.match_date, '%d/%c/%Y') as'match_date' , if(m.team_home = '" + simpan + "','HOME',if(team_away = '" + simpan + "','AWAY',0)) as 'Home/Away',if(m.team_home = '" + simpan + "',m.team_away,if(m.team_away = '" + simpan + "',m.team_home,0)) as 'lawan' ,concat(m.goal_home,'-',m.goal_away) as 'score' FROM `match` m where m.team_home = '" + simpan + "' or m.team_away = '" + simpan + "' order by m.match_date desc LIMIT 5 ;";
+            sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
+            sqlAdapter = new MySqlDataAdapter(sqlCommand);
+            sqlAdapter.Fill(dtGridMatch);
+            dgv_IsiMatch.DataSource = dtGridMatch;
+            
             posisiSekarang = Posisi;
         }
         private void label1_Click(object sender, EventArgs e)
@@ -53,19 +61,14 @@ namespace Praktikum_Week_14
 
         private void FormW14_Load(object sender, EventArgs e)
         {
-            //sqlQuery = "";
+            
             sqlQuery = "select t.team_name, concat(m.manager_name, ' (', n.nation, ')'), concat(t.home_stadium, ', ', t.city, ' (', t.capacity, ')'), team_id from team t, manager m, nationality n where t.manager_id = m.manager_id and n.nationality_id = m.nationality_id;";
             sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
             sqlAdapter = new MySqlDataAdapter(sqlCommand);
             sqlAdapter.Fill(dtData);
             IsiDataPemain(0);
 
-            DataTable dtMatch = new DataTable();
-            sqlQuery = "select match_date from `match`";
-            sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
-            sqlAdapter = new MySqlDataAdapter(sqlCommand);
-            sqlAdapter.Fill(dtMatch);
-            dgv_IsiMatch.DataSource = dtMatch;
+            
 
 
         }
