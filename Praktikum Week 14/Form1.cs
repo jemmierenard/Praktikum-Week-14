@@ -24,6 +24,7 @@ namespace Praktikum_Week_14
         DataTable dtData = new DataTable();
         DataTable dtGoal = new DataTable();
         DataTable dtGridMatch = new DataTable();
+        DataTable dtWorst = new DataTable();
         int posisiSekarang = 0;
         
         public void IsiDataPemain(int Posisi)
@@ -45,8 +46,15 @@ namespace Praktikum_Week_14
             sqlAdapter = new MySqlDataAdapter(sqlCommand);
             sqlAdapter.Fill(dtGridMatch);
             dgv_IsiMatch.DataSource = dtGridMatch;
-            
             posisiSekarang = Posisi;
+
+            dtWorst = new DataTable();
+            sqlQuery = "SELECT p.player_name, SUM(if(d.`type`='CR',1,0)) , SUM(if(d.`type` = 'CY', 1, 0)) ,  sum(if(d.type = 'CY',1,0)) + sum(if(d.type = 'CR',3,0)) as 'poin'  from player p, dmatch d, team t where p.player_id = d.player_id and t.team_id = p.team_id and t.team_id='" + simpan + "' group by p.player_id order by poin desc;";
+            sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
+            sqlAdapter = new MySqlDataAdapter(sqlCommand);
+            sqlAdapter.Fill(dtWorst);
+
+            lbl_IsiWorstDiscipline.Text = dtWorst.Rows[0][0].ToString() + " ," + dtWorst.Rows[0][2].ToString() + " Yellow Card and " + dtWorst.Rows[0][1].ToString() + " Red Card";
         }
         private void label1_Click(object sender, EventArgs e)
         {
@@ -61,16 +69,11 @@ namespace Praktikum_Week_14
 
         private void FormW14_Load(object sender, EventArgs e)
         {
-            
             sqlQuery = "select t.team_name, concat(m.manager_name, ' (', n.nation, ')'), concat(t.home_stadium, ', ', t.city, ' (', t.capacity, ')'), team_id from team t, manager m, nationality n where t.manager_id = m.manager_id and n.nationality_id = m.nationality_id;";
             sqlCommand = new MySqlCommand(sqlQuery, sqlConnect);
             sqlAdapter = new MySqlDataAdapter(sqlCommand);
             sqlAdapter.Fill(dtData);
             IsiDataPemain(0);
-
-            
-
-
         }
 
         private void btnFirst_Click(object sender, EventArgs e)
